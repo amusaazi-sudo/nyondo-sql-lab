@@ -32,3 +32,33 @@ CREATE TABLE IF NOT EXISTS products (
 (4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0)
 (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)
 
+
+# Queries.py
+Query A:
+SELECT * FROM products;
+Output: [(1, 'Cement', 38000, 'Building material'), (2, 'Iron Sheets', 25000, 'Roofing'), (3, 'Paint', 15000, 'White gloss'), ...]
+
+Query B:
+SELECT name, price FROM products;
+Output: [('Cement', 38000), ('Iron Sheets', 25000), ('Paint', 15000), ...]
+
+Query C:
+SELECT * FROM products WHERE id = 3;
+Output: [(3, 'Paint', 15000, 'White gloss')]
+
+Query D:
+SELECT * FROM products WHERE name LIKE '%sheet%';
+Output: [(2, 'Iron Sheets', 25000, 'Roofing')]
+
+Query E:
+SELECT * FROM products ORDER BY price DESC;
+Output: [(1, 'Cement', 38000, 'Building material'), (2, 'Iron Sheets', 25000, 'Roofing'), (3, 'Paint', 15000, 'White gloss')]
+
+Query F:
+SELECT * FROM products ORDER BY price DESC LIMIT 2;
+Output: [(1, 'Cement', 38000, 'Building material'), (2, 'Iron Sheets', 25000, 'Roofing')]
+
+Query G:
+UPDATE products SET price = 38000 WHERE id = 1;
+SELECT * FROM products;
+Output: [(1, 'Cement', 38000, 'Building material'), (2, 'Iron Sheets', 25000, 'Roofing'), (3, 'Paint', 15000, 'White gloss')]
