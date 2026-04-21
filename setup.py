@@ -1,4 +1,3 @@
-ALIYER BAKERS MUSAAZI April/21/2026
 # setup.py
 import sqlite3
 conn = sqlite3.connect('nyondo_stock.db')
@@ -23,12 +22,3 @@ conn.executemany(
 conn.commit()
 rows = conn.execute('SELECT * FROM products').fetchall()
 for r in rows: print(r)
-CREATE TABLE IF NOT EXISTS products (
-)
-'INSERT INTO products (name, description, price) VALUES (?, ?, ?)',
-(1, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0)
-(2, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0)
-(3, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0)
-(4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0)
-(5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)
-
